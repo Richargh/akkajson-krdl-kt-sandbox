@@ -15,7 +15,12 @@ dependencies {
 
     /** Main dependencies **/
     val akkaVersion: String by project
+    val akkaHttpVersion: String by project
     implementation("com.typesafe.akka:akka-actor-typed_2.12:$akkaVersion")
+    implementation("com.typesafe.akka:akka-stream_2.12:$akkaVersion")
+    implementation("com.typesafe.akka:akka-http_2.12:$akkaHttpVersion")
+    implementation("com.typesafe.akka:akka-http-jackson_2.12:$akkaHttpVersion")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.10.+")
 
     /** Test dependencies **/
     val junitVersion: String by project
