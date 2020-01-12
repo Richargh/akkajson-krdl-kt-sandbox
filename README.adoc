@@ -1,0 +1,10 @@
+= Akka WebApi with Json
+
+*Features*
+
+* Akka with Kotlin
+* Gradle Kotlin DSL
+
+== Usage
+
+Run `./gradlew build`
