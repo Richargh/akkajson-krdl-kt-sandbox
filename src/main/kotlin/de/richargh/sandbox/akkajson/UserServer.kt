@@ -1,24 +1,25 @@
 package de.richargh.sandbox.akkajson
 
 import akka.actor.ActorRef
+import akka.actor.ActorSystem
 import akka.http.javadsl.marshallers.jackson.Jackson
 import akka.http.javadsl.server.HttpApp
+import akka.http.javadsl.server.PathMatchers.longSegment
+import akka.http.javadsl.server.PathMatchers.segment
 import akka.http.javadsl.server.Route
 import akka.http.scaladsl.model.StatusCodes
 import akka.pattern.PatternsCS
-import java.util.concurrent.TimeUnit
-import akka.actor.ActorSystem
 import akka.util.Timeout
 import scala.concurrent.duration.FiniteDuration
-import akka.http.javadsl.server.PathMatchers.segment
-import akka.http.javadsl.server.PathMatchers.longSegment
 import java.util.concurrent.CompletionStage
+import java.util.concurrent.TimeUnit
 
-class UserServer(val userActor: ActorRef): HttpApp() {
+class UserServer(private val userActor: ActorRef): HttpApp() {
 
     private var timeout = Timeout(FiniteDuration(5, TimeUnit.SECONDS))
 
-    override fun routes(): Route = path(segment("users").slash(longSegment()), this::getUser)
+    override fun routes(): Route = path("users", this::postUser)
+            .orElse(path(segment("users").slash(longSegment())) { userId -> getUser(userId) })
 
     private fun getUser(id: Long): Route {
         return get {
@@ -30,6 +31,17 @@ class UserServer(val userActor: ActorRef): HttpApp() {
                     complete(StatusCodes.OK(), user, Jackson.marshaller())
                 else
                     complete(StatusCodes.NotFound())
+            })
+        }
+    }
+
+    private fun postUser(): Route = put {
+        entity(Jackson.unmarshaller(User::class.java)) { user ->
+            val userCreated = PatternsCS.ask(userActor, CreateUserMessage(user), timeout)
+                    .thenApply { obj -> obj as ActionPerformed }
+
+            onSuccess({ userCreated }, { performed ->
+                complete(StatusCodes.Created(), performed, Jackson.marshaller())
             })
         }
     }
