@@ -14,7 +14,7 @@ import scala.concurrent.duration.FiniteDuration
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit
 
-class UserServer(private val userActor: ActorRef): HttpApp() {
+class UserRoutes(private val userActor: ActorRef): HttpApp() {
 
     private var timeout = Timeout(FiniteDuration(5, TimeUnit.SECONDS))
 
@@ -50,6 +50,6 @@ class UserServer(private val userActor: ActorRef): HttpApp() {
 fun main(args: Array<String>) {
     val system = ActorSystem.create("userServer")
     val userActor = system.actorOf(UserActor.props(), "userActor")
-    val server = UserServer(userActor)
+    val server = UserRoutes(userActor)
     server.startServer("localhost", 8080, system)
 }
